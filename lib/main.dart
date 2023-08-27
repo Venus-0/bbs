@@ -1,6 +1,5 @@
-import 'package:bbs/global/global_model.dart';
+import 'package:bbs/model/global_model.dart';
 import 'package:bbs/views/boot/boot.dart';
-import 'package:bbs/views/home/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bot_toast/bot_toast.dart';

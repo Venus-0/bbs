@@ -4,6 +4,7 @@ import 'package:bbs/http/http.dart';
 class Api {
   static const HOST = "http://192.168.31.188:8080"; //主域名
 
+  static const CHECK_LOGIN = HOST + "/api/common/checkLogin"; //检查登录接口
   static const REGISTER = HOST + "/api/user/register"; //注册接口
   static const LOGIN = HOST + "/api/user/login"; //登录接口
   static const GET_BBS_LIST = HOST + "/api/bbs/getBBSList"; //获取帖子列表
@@ -20,12 +21,33 @@ class Api {
     return _res;
   }
 
+  ///登录
   static Future<Map> login(String email, String pwd) async {
-    Map _res = await Http.request(REGISTER, HttpType.POST, {
+    Map _res = await Http.request(LOGIN, HttpType.POST, {
       "email": email,
       "pwd": pwd,
       "device": "testDevice",
     });
+    return _res;
+  }
+
+  ///检查登录
+  static Future<Map> checkLogin() async {
+    Map _res = await Http.request(CHECK_LOGIN, HttpType.GET, null);
+    return _res;
+  }
+
+  static Future<Map> addBBS(String title, String content, int type) async {
+    Map _res = await Http.request(ADD_BBS, HttpType.POST, {
+      "title": title,
+      "content": content,
+      "type": type,
+    });
+    return _res;
+  }
+
+  static Future<Map> getBBSList() async {
+    Map _res = await Http.request(GET_BBS_LIST, HttpType.GET, null);
     return _res;
   }
 }

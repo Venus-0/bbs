@@ -61,7 +61,7 @@ class Http {
 
   static Future<Map<String, dynamic>> getCookie() async {
     Map<String, dynamic> headers = {};
-    headers['authorization'] = await SharedPreferenceUtil.getCookie();
+    headers['user'] = await SharedPreferenceUtil.getCookie();
     print("cookie $headers");
     return headers;
   }

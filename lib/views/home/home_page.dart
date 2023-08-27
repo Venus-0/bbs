@@ -1,7 +1,9 @@
+import 'package:bbs/views/bbs/add_bbs.dart';
 import 'package:bbs/views/bbs/bbs_page.dart';
 import 'package:bbs/views/first/first_page.dart';
 import 'package:bbs/views/message/message_page.dart';
 import 'package:bbs/views/user/user_page.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -28,7 +30,9 @@ class _HomePageState extends State<HomePage> {
         ],
       )),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(context, CupertinoPageRoute(builder: (context) => AddBBSPage()));
+        },
         child: Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(

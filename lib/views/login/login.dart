@@ -1,7 +1,11 @@
 import 'dart:math';
 
 import 'package:bbs/http/api.dart';
+import 'package:bbs/model/global_model.dart';
+import 'package:bbs/model/user_bean.dart';
+import 'package:bbs/utils/sharedPreferenceUtil.dart';
 import 'package:bbs/utils/toast.dart';
+import 'package:bbs/views/home/home_page.dart';
 import 'package:bbs/views/login/register.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +26,11 @@ class _LoginPageState extends State<LoginPage> {
   bool _onBusy = false;
 
   ///注册
-  void onRegister() async {
+  void onLogin() async {
     if (_onBusy) return;
     String _email = _emailController.text;
     String _pwd = _pwdController.text;
-    
+
     if (_email.isEmpty) {
       Toast.showToast("请填写邮箱");
       return;
@@ -43,6 +47,16 @@ class _LoginPageState extends State<LoginPage> {
     _onBusy = false;
     if (_res['code'] == 200) {
       Toast.showToast("登录成功");
+      Map<String, dynamic> _user = _res['result']['user'];
+      String _cookie = _res['result']['token'];
+      await SharedPreferenceUtil.setCookie(_cookie);
+      GlobalModel.user = UserModel.fromJson(_user);
+      Navigator.pushAndRemoveUntil(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => HomePage(),
+          ),
+          (route) => false);
     } else {
       Toast.showToast(_res['msg'] ?? "出错了");
     }
@@ -110,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton.filled(
-                        onPressed: () {},
+                        onPressed: onLogin,
                         icon: Icon(Icons.arrow_forward),
                         iconSize: 48,
                         splashColor: Color(0xFFD8D8D8),

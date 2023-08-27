@@ -1,3 +1,4 @@
+import 'package:bbs/model/global_model.dart';
 import 'package:flutter/material.dart';
 
 class UserPage extends StatefulWidget {
@@ -17,10 +18,17 @@ class _UserPageState extends State<UserPage> {
         children: [
           Row(
             children: [
-              Container(width: 80, height: 80,child: Icon(Icons.person,size: 80,),),
+              Container(
+                width: 80,
+                height: 80,
+                child: Icon(
+                  Icons.person,
+                  size: 80,
+                ),
+              ),
               SizedBox(width: 20),
               Text(
-                "BK199",
+                "${GlobalModel.user?.username ?? '？？'}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               )
             ],
