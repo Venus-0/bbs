@@ -41,7 +41,7 @@ class BBSModel {
       question_type: json['question_type'],
       reply_count: json['reply_count'],
       up_count: json['up_count'],
-      last_reply_time: json['last_reply_time'],
+      last_reply_time: DateTime.tryParse(json['last_reply_time'] ?? ""),
       create_time: DateTime.tryParse(json['create_time'] ?? ""),
       delete_time: DateTime.tryParse(json['delete_time'] ?? ""),
       update_time: DateTime.tryParse(json['update_time'] ?? ""),

@@ -42,7 +42,7 @@ class Http {
         Map<String, dynamic> map = {};
         map['code'] = 500;
         map['result'] = "";
-        map['msg'] = "出错了";
+        map['msg'] = "出错了$e";
         return map;
       }
     } on DioException catch (e) {
@@ -53,7 +53,7 @@ class Http {
         Map<String, dynamic> map = {};
         map['code'] = 400;
         map['result'] = "";
-        map['msg'] = "出错了";
+        map['msg'] = "出错了$e";
         return map;
       }
     }
@@ -61,7 +61,7 @@ class Http {
 
   static Future<Map<String, dynamic>> getCookie() async {
     Map<String, dynamic> headers = {};
-    headers['user'] = await SharedPreferenceUtil.getCookie();
+    headers['Authorization'] = await SharedPreferenceUtil.getCookie();
     print("cookie $headers");
     return headers;
   }

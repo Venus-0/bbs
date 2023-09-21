@@ -2,7 +2,7 @@ import 'package:bbs/http/http.dart';
 
 ///接口方法
 class Api {
-  static const HOST = "http://192.168.31.188:8080"; //主域名
+  static const HOST = "http://paediaaaa.cc"; //主域名
 
   static const CHECK_LOGIN = HOST + "/api/common/checkLogin"; //检查登录接口
   static const REGISTER = HOST + "/api/user/register"; //注册接口
