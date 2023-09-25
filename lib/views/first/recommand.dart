@@ -14,6 +14,8 @@ class RecommandPage extends StatefulWidget {
 class _RecommandPageState extends State<RecommandPage> {
   RefreshController _refreshController = RefreshController();
   List<BBSModel> _bbsList = [];
+  int _page = 1;
+  int _totalPage = 1;
 
   @override
   void initState() {
@@ -24,25 +26,26 @@ class _RecommandPageState extends State<RecommandPage> {
     });
   }
 
-  Future<void> getList() async {
-    Map _res = await Api.getBBSList();
+  Future<void> getList({bool refersh = false}) async {
+    if (refersh) {
+      _page = 1;
+    }
+    Map _res = await Api.getBBSList(_page, type: BBSModel.TYPE_POST);
     print(_res);
     if (_res['code'] == 200) {
-      _bbsList = [];
+      if (refersh) {
+        _bbsList = [];
+      }
       List<Map<String, dynamic>> _list = List<Map<String, dynamic>>.from(_res['result']['data']);
       for (final json in _list) {
         BBSModel _bbsModel = BBSModel.fromJson(json);
         _bbsList.add(_bbsModel);
       }
+      _totalPage = _res['result']['page']['total'];
     }
     setState(() {});
   }
 
-  // List<Map<String, dynamic>> _list = [
-  //   {"title": "如何提升显卡性能", "up": 234, "detail": "大家有什么好的方法可以分享一下吗"},
-  //   {"title": "Adobe常用软件破解分享", "up": 124, "detail": "新手小白上路，想快速下载Adobe常用软件吗，资源分享"},
-  //   {"title": "求助：如何解决电脑蓝屏问题", "up": 23, "detail": "最近电脑使用过程中，经常蓝屏，希望大佬帮忙解决一下"},
-  // ];
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -57,6 +60,17 @@ class _RecommandPageState extends State<RecommandPage> {
               _refreshController.refreshCompleted();
             });
           },
+          onLoading: () {
+            if (_page == _totalPage) {
+              _refreshController.loadNoData();
+            } else {
+              _page++;
+              getList().then((value) {
+                _refreshController.loadComplete();
+              });
+            }
+          },
+          enablePullUp: true,
           controller: _refreshController,
           child: ListView.builder(
             itemCount: _bbsList.length,

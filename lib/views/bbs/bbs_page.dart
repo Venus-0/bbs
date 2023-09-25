@@ -1,3 +1,4 @@
+import 'package:bbs/model/bbs_model.dart';
 import 'package:bbs/views/bbs/bbs.dart';
 import 'package:bbs/views/bbs/digest.dart';
 import 'package:bbs/views/bbs/question.dart';
@@ -38,9 +39,11 @@ class _BBSPageState extends State<BBSPage> with SingleTickerProviderStateMixin {
     );
 
     Widget tabBarView = TabBarView(controller: _tabController, children: [
-      BBS(),
-      WikiPage(),
-      QuestionPage(),
+      BBS(bbsModel: BBSModel.TYPE_POST,),
+      BBS(bbsModel: BBSModel.TYPE_WIKI,),
+      BBS(bbsModel: BBSModel.TYPE_QUESTION,),
+      // WikiPage(),
+      // QuestionPage(),
       DigestPage(),
     ]);
     return Container(

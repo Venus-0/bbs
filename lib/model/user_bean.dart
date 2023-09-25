@@ -1,4 +1,3 @@
-
 ///用户数据模型
 class UserModel {
   int user_id; //用户id
@@ -20,11 +19,11 @@ class UserModel {
       return UserModel();
     } else {
       return UserModel(
-        user_id: jsonRes['user_id'],
-        password: jsonRes['password'],
-        email: jsonRes['email'],
-        username: jsonRes['username'],
-        avatar: jsonRes['avatar'],
+        user_id: jsonRes['user_id'] ?? "",
+        password: jsonRes['password'] ?? "",
+        email: jsonRes['email'] ?? "",
+        username: jsonRes['username'] ?? "",
+        avatar: jsonRes['avatar'] ?? "",
       );
     }
   }

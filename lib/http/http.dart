@@ -8,7 +8,7 @@ enum HttpType { GET, POST }
 
 class Http {
   static Future<Map> request(String url, HttpType requestType, data, {CancelToken? cancelToken}) async {
-    print("url:$url");
+    print("url:$url data $data");
     Dio _dio = Dio();
     tokenInter(_dio);
     Response? response;
