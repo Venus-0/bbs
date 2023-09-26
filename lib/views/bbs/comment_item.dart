@@ -33,7 +33,7 @@ class _CommentItemState extends State<CommentItem> {
   ///此处都是楼中楼回复
   void onReply(CommentModel commentModel, String comment) async {
     EasyLoading.show();
-    Map _res = await Api.addComment(commentModel.comment_id, CommentModel.TYPE_COMMENT, comment, commentModel.id);
+    Map _res = await Api.addComment(widget.commnet.id, CommentModel.TYPE_COMMENT, comment, commentModel.id);
     EasyLoading.dismiss();
     if (_res['code'] == 200) {
       _replyController.clear();
@@ -43,7 +43,7 @@ class _CommentItemState extends State<CommentItem> {
         user: GlobalModel.user,
         comment: comment,
         comment_type: CommentModel.TYPE_COMMENT,
-        comment_id: commentModel.comment_id,
+        comment_id: widget.commnet.id,
         sub_comment_id: commentModel.id,
         user_id: GlobalModel.user?.user_id ?? 0,
       );
