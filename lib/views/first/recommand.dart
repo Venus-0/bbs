@@ -1,6 +1,8 @@
 import 'package:bbs/http/api.dart';
 import 'package:bbs/model/bbs_model.dart';
 import 'package:bbs/utils/event_bus.dart';
+import 'package:bbs/views/bbs/bbs_detail.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -75,44 +77,55 @@ class _RecommandPageState extends State<RecommandPage> {
           child: ListView.builder(
             itemCount: _bbsList.length,
             itemBuilder: (BuildContext context, int index) {
-              return Container(
-                margin: EdgeInsets.symmetric(vertical: 5),
-                constraints: BoxConstraints(minHeight: 50),
-                width: double.infinity,
-                child: Row(
-                  children: [
-                    Icon(Icons.person_2_outlined, size: 32),
-                    SizedBox(width: 10),
-                    Expanded(
-                        child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Text(
-                              _bbsList[index].title,
-                              style: TextStyle(fontWeight: FontWeight.w500),
-                            ),
-                            Text(
-                              "${_bbsList[index].up_count}点赞",
-                              style: TextStyle(color: Colors.grey[400]),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              "${_bbsList[index].content}",
-                              style: TextStyle(color: Colors.grey[400], fontSize: 14),
-                            )
-                          ],
-                        )
-                      ],
-                    ))
-                  ],
-                ),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => BBSDetail(bbs: _bbsList[index]),
+                      ));
+                },
+                child: Hero(
+                    tag: _bbsList[index].id,
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 5),
+                      constraints: BoxConstraints(minHeight: 50),
+                      width: double.infinity,
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_2_outlined, size: 32),
+                          SizedBox(width: 10),
+                          Expanded(
+                              child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Text(
+                                    _bbsList[index].title,
+                                    style: TextStyle(fontWeight: FontWeight.w500),
+                                  ),
+                                  Text(
+                                    "${_bbsList[index].up_count}点赞",
+                                    style: TextStyle(color: Colors.grey[400]),
+                                  )
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    "${_bbsList[index].content}",
+                                    style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                                  )
+                                ],
+                              )
+                            ],
+                          ))
+                        ],
+                      ),
+                    )),
               );
             },
           ),
