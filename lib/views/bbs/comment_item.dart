@@ -28,6 +28,8 @@ class _CommentItemState extends State<CommentItem> {
   FocusNode _replyNode = FocusNode();
   TextEditingController _replyController = TextEditingController();
 
+  bool _onBusy = false;
+
   ///此处都是楼中楼回复
   void onReply(CommentModel commentModel, String comment) async {
     EasyLoading.show();
@@ -125,17 +127,57 @@ class _CommentItemState extends State<CommentItem> {
               SizedBox(width: 10),
               Text(widget.commnet.user?.username ?? "未知用户"),
               Spacer(),
-              TextButton.icon(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.thumb_up,
-                    color: Color(0xffb2bec3),
-                    size: 18,
-                  ),
-                  label: Text(
-                    "${widget.commnet.up_count}",
-                    style: TextStyle(color: Color(0xffb2bec3)),
-                  )),
+              FutureBuilder(
+                future: Api.checkLike(4, widget.commnet.id),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    bool _like = snapshot.data ?? false;
+                    return TextButton.icon(
+                        onPressed: () async {
+                          if (_onBusy) return;
+                          _onBusy = true;
+                          if (_like) {
+                            bool _ret = await Api.unlike(4, widget.commnet.id);
+                            _onBusy = false;
+                            if (_ret) {
+                              setState(() {
+                                widget.commnet.up_count--;
+                              });
+                            }
+                          } else {
+                            bool _ret = await Api.like(4, widget.commnet.id);
+                            _onBusy = false;
+                            if (_ret) {
+                              setState(() {
+                                widget.commnet.up_count++;
+                              });
+                            }
+                          }
+                        },
+                        icon: Icon(
+                          Icons.thumb_up,
+                          color: _like ? Color(0xFFeb4d4b) : Color(0xffb2bec3),
+                          size: 18,
+                        ),
+                        label: Text(
+                          "${widget.commnet.up_count}",
+                          style: TextStyle(color: Color(0xffb2bec3)),
+                        ));
+                  } else {
+                    return TextButton.icon(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.thumb_up,
+                          color: Color(0xffb2bec3),
+                          size: 18,
+                        ),
+                        label: Text(
+                          "${widget.commnet.up_count}",
+                          style: TextStyle(color: Color(0xffb2bec3)),
+                        ));
+                  }
+                },
+              ),
             ],
           ),
           GestureDetector(

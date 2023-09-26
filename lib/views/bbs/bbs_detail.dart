@@ -30,6 +30,8 @@ class _BBSDetailState extends State<BBSDetail> {
 
   TextEditingController _addCommentController = TextEditingController();
 
+  bool _onBusy = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -225,15 +227,60 @@ class _BBSDetailState extends State<BBSDetail> {
                 ),
                 SizedBox(width: 20),
                 //点赞数
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.thumb_up, color: Color(0xff636e72)),
-                    Text(
-                      "${widget.bbs.up_count}",
-                      style: TextStyle(color: Color(0xff636e72)),
-                    ),
-                  ],
+                FutureBuilder(
+                  future: Api.checkLike(widget.bbs.question_type, widget.bbs.id),
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      bool _like = snapshot.data ?? false;
+                      return GestureDetector(
+                        onTap: () async {
+                          if (_onBusy) return;
+                          _onBusy = true;
+                          if (_like) {
+                            bool _ret = await Api.unlike(widget.bbs.question_type, widget.bbs.id);
+                            _onBusy = false;
+                            if (_ret) {
+                              setState(() {
+                                widget.bbs.up_count--;
+                              });
+                            }
+                          } else {
+                            bool _ret = await Api.like(widget.bbs.question_type, widget.bbs.id);
+                            _onBusy = false;
+                            if (_ret) {
+                              setState(() {
+                                widget.bbs.up_count++;
+                              });
+                            }
+                          }
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.thumb_up, color: _like ? Color(0xFFeb4d4b) : Color(0xff636e72)),
+                            Text(
+                              "${widget.bbs.up_count}",
+                              style: TextStyle(color: Color(0xff636e72)),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return GestureDetector(
+                        onTap: () {},
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.thumb_up, color: Color(0xff636e72)),
+                            Text(
+                              "${widget.bbs.up_count}",
+                              style: TextStyle(color: Color(0xff636e72)),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
                 ),
                 SizedBox(width: 20),
                 //评论数

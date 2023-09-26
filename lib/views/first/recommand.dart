@@ -14,23 +14,23 @@ class RecommandPage extends StatefulWidget {
 class _RecommandPageState extends State<RecommandPage> {
   RefreshController _refreshController = RefreshController();
   List<BBSModel> _bbsList = [];
-  int _page = 1;
-  int _totalPage = 1;
+  int _startIndex = 0;
+  int _totalData = 0;
 
   @override
   void initState() {
     super.initState();
     getList();
     eventBus.on<BBSBus>().listen((event) {
-      getList();
+      getList(refersh: true);
     });
   }
 
   Future<void> getList({bool refersh = false}) async {
     if (refersh) {
-      _page = 1;
+      _startIndex = 0;
     }
-    Map _res = await Api.getBBSList(_page, type: BBSModel.TYPE_POST);
+    Map _res = await Api.getBBSList(_startIndex, type: BBSModel.TYPE_POST);
     print(_res);
     if (_res['code'] == 200) {
       if (refersh) {
@@ -41,7 +41,8 @@ class _RecommandPageState extends State<RecommandPage> {
         BBSModel _bbsModel = BBSModel.fromJson(json);
         _bbsList.add(_bbsModel);
       }
-      _totalPage = _res['result']['page']['total'];
+      _totalData = _res['result']['page']['total'];
+      _startIndex += (_res['result']['page']['returnDataCount'] ?? 0) as int;
     }
     setState(() {});
   }
@@ -61,10 +62,9 @@ class _RecommandPageState extends State<RecommandPage> {
             });
           },
           onLoading: () {
-            if (_page == _totalPage) {
+            if (_startIndex == _totalData) {
               _refreshController.loadNoData();
             } else {
-              _page++;
               getList().then((value) {
                 _refreshController.loadComplete();
               });
