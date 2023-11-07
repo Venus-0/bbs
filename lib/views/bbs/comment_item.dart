@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bbs/http/api.dart';
 import 'package:bbs/model/comment_model.dart';
 import 'package:bbs/model/global_model.dart';
@@ -115,6 +117,14 @@ class _CommentItemState extends State<CommentItem> {
 
   @override
   Widget build(BuildContext context) {
+    Widget _getAvatar() {
+      if ((widget.commnet.user?.avatar ?? "").isEmpty) {
+        return Icon(Icons.person_2_outlined);
+      } else {
+        return Image.memory(base64Decode(widget.commnet.user!.avatar!.split(",").last));
+      }
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Column(
@@ -123,7 +133,7 @@ class _CommentItemState extends State<CommentItem> {
         children: [
           Row(
             children: [
-              Icon(Icons.person_2_outlined),
+              SizedBox(height: 44, width: 44, child: _getAvatar()),
               SizedBox(width: 10),
               Text(widget.commnet.user?.username ?? "未知用户"),
               Spacer(),

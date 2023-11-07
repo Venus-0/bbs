@@ -1,4 +1,5 @@
 import 'package:bbs/http/api.dart';
+import 'package:bbs/http/socket.dart';
 import 'package:bbs/model/global_model.dart';
 import 'package:bbs/model/user_bean.dart';
 import 'package:bbs/utils/sharedPreferenceUtil.dart';

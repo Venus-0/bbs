@@ -1,4 +1,11 @@
+import 'dart:convert';
+import 'package:bbs/http/api.dart';
+import 'package:bbs/model/bbs_model.dart';
 import 'package:bbs/model/global_model.dart';
+import 'package:bbs/utils/event_bus.dart';
+import 'package:bbs/views/user/my_post.dart';
+import 'package:bbs/views/user/user_detail.dart';
+
 import 'package:flutter/material.dart';
 
 class UserPage extends StatefulWidget {
@@ -9,36 +16,84 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  int? _subscribe;
+  int? _fans;
+  List<BBSModel> _bbsList = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getDetail();
+    eventBus.on<User>().listen((event) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  void getDetail() async {
+    final (_, _subscribe, _fans, _, _bbsList) = await Api.getUserDetail(GlobalModel.user!.user_id);
+    setState(() {
+      this._subscribe = _subscribe;
+      this._fans = _fans;
+      this._bbsList = _bbsList ?? [];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    Widget _getAvatar() {
+      print(GlobalModel.user?.avatar);
+      if ((GlobalModel.user?.avatar ?? "").isEmpty) {
+        return Icon(
+          Icons.person,
+          size: 80,
+        );
+      } else {
+        return Image.memory(base64Decode(GlobalModel.user!.avatar!.split(",").last));
+      }
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 40, vertical: 60),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                child: Icon(
-                  Icons.person,
-                  size: 80,
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserDetail(),
+                  ));
+            },
+            child: Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  child: _getAvatar(),
                 ),
-              ),
-              SizedBox(width: 20),
-              Text(
-                "${GlobalModel.user?.username ?? '？？'}",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              )
-            ],
+                SizedBox(width: 20),
+                Text(
+                  "${GlobalModel.user?.username ?? '？？'}",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                )
+              ],
+            ),
           ),
           SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "10",
+                "${_fans ?? '--'}",
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               Text(
@@ -47,18 +102,24 @@ class _UserPageState extends State<UserPage> {
               ),
               SizedBox(width: 30),
               Text(
-                "20",
+                "${_subscribe ?? '--'}",
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               Text(
-                "点赞",
+                "关注",
                 style: TextStyle(fontSize: 16),
               )
             ],
           ),
           SizedBox(height: 50),
           TextButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MyPost(bbsList: _bbsList),
+                    ));
+              },
               icon: Icon(Icons.edit, color: Colors.grey[400]),
               label: Text("我的帖子", style: TextStyle(color: Colors.grey[400]))),
           TextButton.icon(

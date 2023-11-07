@@ -27,6 +27,11 @@ class _BBSState extends State<BBS> {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> getList({bool refresh = false}) async {
     if (refresh) {
       _startIndex = 0;

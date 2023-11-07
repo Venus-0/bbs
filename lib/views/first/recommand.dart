@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bbs/http/api.dart';
 import 'package:bbs/model/bbs_model.dart';
 import 'package:bbs/utils/event_bus.dart';
@@ -28,6 +30,11 @@ class _RecommandPageState extends State<RecommandPage> {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> getList({bool refersh = false}) async {
     if (refersh) {
       _startIndex = 0;
@@ -51,6 +58,14 @@ class _RecommandPageState extends State<RecommandPage> {
 
   @override
   Widget build(BuildContext context) {
+    Widget _getAvatar(BBSModel bbs) {
+      if ((bbs.avatar ?? "").isEmpty) {
+        return Icon(Icons.person_2_outlined);
+      } else {
+        return Image.memory(base64Decode(bbs.avatar!.split(",").last));
+      }
+    }
+
     return Container(
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +108,11 @@ class _RecommandPageState extends State<RecommandPage> {
                       width: double.infinity,
                       child: Row(
                         children: [
-                          Icon(Icons.person_2_outlined, size: 32),
+                          SizedBox(
+                            height: 32,
+                            width: 32,
+                            child: _getAvatar(_bbsList[index]),
+                          ),
                           SizedBox(width: 10),
                           Expanded(
                               child: Column(

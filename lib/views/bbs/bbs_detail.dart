@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bbs/http/api.dart';
 import 'package:bbs/model/bbs_model.dart';
 import 'package:bbs/model/comment_model.dart';
@@ -5,6 +7,9 @@ import 'package:bbs/model/global_model.dart';
 import 'package:bbs/model/user_bean.dart';
 import 'package:bbs/utils/toast.dart';
 import 'package:bbs/views/bbs/comment_item.dart';
+import 'package:bbs/views/user/user_info.dart';
+import 'package:bbs/views/widgets/image_preview.dart';
+import 'package:card_swiper/card_swiper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -106,33 +111,60 @@ class _BBSDetailState extends State<BBSDetail> {
 
   @override
   Widget build(BuildContext context) {
+    Widget _getAvatar() {
+      if ((widget.bbs.avatar ?? "").isEmpty) {
+        return Icon(Icons.person_2_outlined);
+      } else {
+        return Image.memory(base64Decode(widget.bbs.avatar!.split(",").last));
+      }
+    }
+
     Widget _load = Row(
       children: [Icon(Icons.person_2_outlined)],
     );
 
-    Widget _userSheet = Row(
-      children: [
-        Icon(Icons.person_2_outlined),
-        SizedBox(width: 10),
-        Text(_user?.username ?? "未知用户"),
-        Spacer(),
-        ...GlobalModel.user!.user_id == _user?.user_id
-            ? []
-            : [
-                RawMaterialButton(
-                  onPressed: () {},
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [Icon(Icons.add), Text('关注')],
-                  ),
-                )
-              ]
-      ],
+    Widget _userSheet = GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        if (_user == null) return;
+        if (_user!.user_id == GlobalModel.user?.user_id) return;
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserInfo(user: _user!),
+            ));
+      },
+      child: Row(
+        children: [
+          SizedBox(
+            height: 42,
+            width: 42,
+            child: _getAvatar(),
+          ),
+          SizedBox(width: 10),
+          Text(_user?.username ?? "未知用户"),
+          Spacer(),
+          ...GlobalModel.user!.user_id == _user?.user_id
+              ? []
+              : [
+                  RawMaterialButton(
+                    onPressed: () {},
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [Icon(Icons.add), Text('关注')],
+                    ),
+                  )
+                ]
+        ],
+      ),
     );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("正文"),
+        title: GestureDetector(
+          child: Text("正文"),
+          onTap: () async {},
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -158,7 +190,28 @@ class _BBSDetailState extends State<BBSDetail> {
             enablePullUp: true,
             child: ListView(
               children: [
-                SizedBox(height: 20),
+                SizedBox(
+                  height: widget.bbs.images.isEmpty ? 20 : 160,
+                  child: Swiper(
+                    itemCount: widget.bbs.images.length,
+                    itemBuilder: (context, index) {
+                      Image _image = Image.memory(widget.bbs.images[index]);
+
+                      return Hero(
+                          tag: _image.hashCode,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ImagePreview(image: _image, tag: _image.hashCode),
+                                  ));
+                            },
+                            child: _image,
+                          ));
+                    },
+                  ),
+                ),
                 Hero(
                     tag: widget.bbs.id,
                     child: Padding(

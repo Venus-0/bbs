@@ -1,3 +1,4 @@
+import 'package:bbs/http/socket.dart';
 import 'package:bbs/views/bbs/add_bbs.dart';
 import 'package:bbs/views/bbs/bbs_page.dart';
 import 'package:bbs/views/first/first_page.dart';
@@ -21,6 +22,13 @@ class _HomePageState extends State<HomePage> {
     {"title": "我的", "icon": Icons.person},
   ];
   int _pageIndex = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    SocketClient.instance.init();
+  }
 
   @override
   Widget build(BuildContext context) {
