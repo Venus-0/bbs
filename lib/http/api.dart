@@ -1,19 +1,29 @@
+import 'dart:convert';
+
 import 'package:bbs/http/http.dart';
 import 'package:bbs/model/bbs_model.dart';
 import 'package:bbs/model/comment_model.dart';
 import 'package:bbs/model/message_model.dart';
+import 'package:bbs/model/notice_model.dart';
 import 'package:bbs/model/user_bean.dart';
 import 'package:bbs/utils/toast.dart';
+import 'package:flutter/services.dart';
 
 ///接口方法
 class Api {
   static const HOST = "http://192.168.31.188:8080"; //主域名
+  // static const HOST = "http://192.168.1.3:8080"; //主域名
   // static const HOST = "http://paediaaaa.cc"; //主域名
 
   static const CHECK_LOGIN = HOST + "/api/common/checkLogin"; //检查登录接口
   static const REGISTER = HOST + "/api/user/register"; //注册接口
   static const LOGIN = HOST + "/api/user/login"; //登录接口
   static const GET_BBS_LIST = HOST + "/api/bbs/getBBSList"; //获取帖子列表
+  static const GET_SUBSCRIBE_BBS_LIST = HOST + "/api/bbs/getSubscribeBBSList"; //获取关注帖子
+  static const GET_POPULAR_BBS_LIST = HOST + "/api/bbs/getPopularBBSList"; //获取热门帖子
+  static const GET_RECOMMAND_BBS_LIST = HOST + "/api/bbs/getRecommandBBSList"; //获取推荐帖子
+  static const GET_RECENT_BBS_LIST = HOST + "/api/bbs/getRecentBBSList"; //获取最近帖子
+  static const GET_STAR_BBS_LIST = HOST + "/api/bbs/getStarBBSList"; //获取精华帖子
   static const ADD_BBS = HOST + "/api/bbs/addBBS"; //添加帖子
   static const ADD_COMMENT = HOST + "/api/bbs/addComment"; //添加评论
   static const LIKE = HOST + "/api/common/like"; //点赞
@@ -29,6 +39,16 @@ class Api {
   static const SEND_MESSAGE = HOST + "/api/message/sendMessgae"; //发送消息
   static const GET_USER_DETAIL = HOST + "/api/user/getUserDetail"; //获取用户信息
   static const GET_USER_CHAT = HOST + "/api/message/getUserMessage"; //获取指定用户的聊天记录
+  static const GET_NOTICE = HOST + '/api/user/getNotice'; //获取公告
+
+  static const SUBSCRIBE_USER = HOST + "/api/common/subscribe"; //关注
+  static const UNSUBSCRIBE_USER = HOST + "/api/common/unSubscribe"; //取消关注
+  static const CHECK_SUBSCRIBE = HOST + "/api/common/checkSubscribe"; //检查是否关注
+  static const GET_IMAGE = HOST + "/api/common/getImage"; //获取图片
+  static const SEARCH_BBS = HOST + "/api/bbs/searchBBS"; //搜索帖子
+  static const GET_SUB_LIST = HOST + "/api/user/getSubscribeList"; //获取关注列表
+  static const GET_FANS_LIST = HOST + "/api/user/getFansList"; //获取粉丝列表
+  static const GET_LIKE_LIST = HOST + "/api/user/getLikeList"; //获取点赞内容
 
   ///注册
   static Future<Map> register(String name, String email, String pwd) async {
@@ -69,6 +89,36 @@ class Api {
   ///获取论坛列表 不传type默认全部类型
   static Future<Map> getBBSList(int startIndex, {int type = 0, int pageSize = 10}) async {
     Map _res = await Http.request(GET_BBS_LIST, HttpType.GET, {"type": type, "startIndex": startIndex, "pageSize": pageSize});
+    return _res;
+  }
+
+  ///获取关注论坛列表 不传type默认全部类型
+  static Future<Map> getSubScribeBBSList(int startIndex, {int type = 0, int pageSize = 10}) async {
+    Map _res = await Http.request(GET_SUBSCRIBE_BBS_LIST, HttpType.GET, {"type": type, "startIndex": startIndex, "pageSize": pageSize});
+    return _res;
+  }
+
+  ///获取热门论坛列表 不传type默认全部类型
+  static Future<Map> getPopularBBSList(int startIndex, {int type = 0, int pageSize = 10}) async {
+    Map _res = await Http.request(GET_POPULAR_BBS_LIST, HttpType.GET, {"type": type, "startIndex": startIndex, "pageSize": pageSize});
+    return _res;
+  }
+
+  ///获取最近论坛列表 不传type默认全部类型
+  static Future<Map> getRecentBBSList(int startIndex, {int type = 0, int pageSize = 10}) async {
+    Map _res = await Http.request(GET_RECENT_BBS_LIST, HttpType.GET, {"type": type, "startIndex": startIndex, "pageSize": pageSize});
+    return _res;
+  }
+
+  ///获取加精论坛列表 不传type默认全部类型
+  static Future<Map> getStarBBSList(int startIndex, {int type = 0, int pageSize = 10}) async {
+    Map _res = await Http.request(GET_STAR_BBS_LIST, HttpType.GET, {"type": type, "startIndex": startIndex, "pageSize": pageSize});
+    return _res;
+  }
+
+  ///获取推荐论坛列表 不传type默认全部类型
+  static Future<Map> getRecommandBBSList(int startIndex, {int type = 0, int pageSize = 10}) async {
+    Map _res = await Http.request(GET_RECOMMAND_BBS_LIST, HttpType.GET, {"type": type, "startIndex": startIndex, "pageSize": pageSize});
     return _res;
   }
 
@@ -209,5 +259,75 @@ class Api {
     } else {
       return [];
     }
+  }
+
+  ///关注用户
+  static Future<bool> subscribeUser(int user_id) async {
+    Map _res = await Http.request(SUBSCRIBE_USER, HttpType.POST, {'subscribeId': user_id, 'type': 1});
+    if (_res['code'] == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  ///取关用户
+  static Future<bool> unSubScribe(int user_id) async {
+    Map _res = await Http.request(UNSUBSCRIBE_USER, HttpType.POST, {'subscribeId': user_id, 'type': 1});
+    if (_res['code'] == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  ///获取图片
+  static Future<Uint8List?> getImage(int id) async {
+    Map _res = await Http.request(GET_IMAGE, HttpType.POST, {"id": id});
+    Uint8List? _imageByte;
+    if (_res['code'] == 200) {
+      if (_res['result']['data'].toString().isNotEmpty) {
+        try {
+          _imageByte = base64Decode(_res['result']['data'].toString().split(",").last);
+        } catch (e) {}
+      }
+    }
+    return _imageByte;
+  }
+
+  ///搜索
+  static Future<Map> searchBBS(String search, {int type = 0, int start = 0, int pageSize = 10}) async {
+    Map _res = await Http.request(SEARCH_BBS, HttpType.POST, {
+      "search": search,
+      "searchType": type,
+      "startIndex": start,
+      "pageSize": pageSize,
+    });
+    return _res;
+  }
+
+  static Future<bool> checkSubscribe(int userId, {int type = 1}) async {
+    Map _res = await Http.request(CHECK_SUBSCRIBE, HttpType.POST, {"subscribeId": userId, "type": type});
+    return _res['code'] == 200;
+  }
+
+  static Future<Map> getFansList(int userId, int start, {int pageSize = 20}) async {
+    Map _res = await Http.request(GET_FANS_LIST, HttpType.POST, {"user_id": userId, "start": start, "pageSize": pageSize});
+    return _res;
+  }
+
+  static Future<Map> getSubscriptionList(int userId, int type, int start, {int pageSize = 20}) async {
+    Map _res = await Http.request(GET_SUB_LIST, HttpType.POST, {"user_id": userId, "type": type, "start": start, "pageSize": pageSize});
+    return _res;
+  }
+
+  ///获取公告
+  static Future<NoticeModel?> getNotice() async {
+    Map _res = await Http.request(GET_NOTICE, HttpType.GET, null);
+    NoticeModel? _notice;
+    if ((_res['result'] ?? {}).isNotEmpty) {
+      _notice = NoticeModel.fromJson(_res['result']);
+    }
+    return _notice;
   }
 }

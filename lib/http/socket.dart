@@ -10,7 +10,8 @@ import 'package:bbs/utils/event_bus.dart';
 
 class SocketClient {
   static const String SOCKET_ADDR = "192.168.31.188";
-  static const int SOCKET_PORT = 8081; //socket端口
+  // static const String SOCKET_ADDR = "192.168.1.3";
+  static const int SOCKET_PORT = 8082; //socket端口
   Socket? _socket;
   static const int MAX_HEART_TIME = 10; //最大心跳包等待时长
   static const int HEART_DURATION = 30; //心跳包间隔时长

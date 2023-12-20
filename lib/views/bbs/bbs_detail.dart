@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:bbs/http/api.dart';
 import 'package:bbs/model/bbs_model.dart';
 import 'package:bbs/model/comment_model.dart';
 import 'package:bbs/model/global_model.dart';
 import 'package:bbs/model/user_bean.dart';
+import 'package:bbs/utils/event_bus.dart';
 import 'package:bbs/utils/toast.dart';
 import 'package:bbs/views/bbs/comment_item.dart';
 import 'package:bbs/views/user/user_info.dart';
@@ -37,6 +39,10 @@ class _BBSDetailState extends State<BBSDetail> {
 
   bool _onBusy = false;
 
+  bool _isSubscribe = false; //是否关注当前用户
+
+  bool _isBusy = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -51,11 +57,19 @@ class _BBSDetailState extends State<BBSDetail> {
       Map<String, dynamic> _result = _res['result'];
       _bbs = BBSModel.fromJson(_result['post']);
       _user = UserModel.fromJson(_result['user']);
+      if (GlobalModel.user!.user_id != _user?.user_id) {
+        _checkSubscribe();
+      }
       isLoad = false;
       setState(() {});
     } else {
       Toast.showToast(_res['msg'] ?? "出错了");
     }
+  }
+
+  void _checkSubscribe() async {
+    _isSubscribe = await Api.checkSubscribe(_user!.user_id);
+    setState(() {});
   }
 
   Future<void> getComment({bool refresh = false}) async {
@@ -109,6 +123,67 @@ class _BBSDetailState extends State<BBSDetail> {
     }
   }
 
+  void onDeletePost() async {
+    Navigator.pop(context);
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text("提示"),
+              content: Text("是否删除该贴?"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      "是",
+                      style: TextStyle(color: Colors.red),
+                    )),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("否")),
+              ],
+            ));
+  }
+
+  void onUnSubscribe() async {
+    if (_isBusy) return;
+    _isBusy = true;
+    setState(() {
+      _isSubscribe = false;
+    });
+    Api.unSubScribe(_user!.user_id).then((value) {
+      if (!value) {
+        Toast.showToast("出错了");
+        setState(() {
+          _isSubscribe = true;
+        });
+      } else {
+        eventBus.fire(SubscribeChange());
+      }
+    });
+  }
+
+  void onSubscribe() async {
+    if (_isBusy) return;
+    _isBusy = true;
+    setState(() {
+      _isSubscribe = true;
+    });
+    Api.subscribeUser(_user!.user_id).then((value) {
+      if (!value) {
+        Toast.showToast("出错了");
+        setState(() {
+          _isSubscribe = false;
+        });
+      } else {
+        eventBus.fire(SubscribeChange());
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget _getAvatar() {
@@ -119,8 +194,63 @@ class _BBSDetailState extends State<BBSDetail> {
       }
     }
 
+    void _showPostEdit() {
+      showModalBottomSheet(
+          context: context,
+          builder: (context) => SizedBox(
+                height: 66,
+                child: ListView(
+                  children: [
+                    GestureDetector(
+                      child: Container(
+                        height: 42,
+                        margin: EdgeInsets.symmetric(vertical: 12),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '删除帖子',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      onTap: onDeletePost,
+                    ),
+                  ],
+                ),
+              ));
+    }
+
     Widget _load = Row(
       children: [Icon(Icons.person_2_outlined)],
+    );
+
+    Widget _subscribe = GestureDetector(
+      onTap: () {
+        if (_isSubscribe) {
+          onUnSubscribe();
+        } else {
+          onSubscribe();
+        }
+      },
+      child: Container(
+        width: 80,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            color: _isSubscribe ? null : Color(0xff1c1a18),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: _isSubscribe ? Color(0xffd8d8d8) : Color(0xff1c1a18), width: 1.5)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: _isSubscribe
+              ? [
+                  Icon(Icons.check, color: Colors.black45),
+                  Text("已关注", style: TextStyle(color: Colors.black45)),
+                ]
+              : [
+                  Icon(Icons.add, color: Colors.white),
+                  Text("关注", style: TextStyle(color: Colors.white)),
+                ],
+        ),
+      ),
     );
 
     Widget _userSheet = GestureDetector(
@@ -144,28 +274,28 @@ class _BBSDetailState extends State<BBSDetail> {
           SizedBox(width: 10),
           Text(_user?.username ?? "未知用户"),
           Spacer(),
-          ...GlobalModel.user!.user_id == _user?.user_id
-              ? []
-              : [
-                  RawMaterialButton(
-                    onPressed: () {},
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [Icon(Icons.add), Text('关注')],
-                    ),
-                  )
-                ]
+          ...GlobalModel.user!.user_id == _user?.user_id || _user?.disable_time != null ? [] : [_subscribe]
         ],
       ),
     );
+
+    int imageCount = widget.bbs.images.length;
+    double width = (MediaQuery.of(context).size.width - 20);
+    int column = imageCount >= 3 ? 3 : max(1, imageCount % 3);
+    if (imageCount == 2 || imageCount == 4) {
+      column = imageCount ~/ 2;
+    }
+    double _imageWidth = width / column;
+    double _gridHeight = imageCount > 3 ? width : width / min(imageCount, 3);
 
     return Scaffold(
       appBar: AppBar(
         title: GestureDetector(
           child: Text("正文"),
-          onTap: () async {},
         ),
         centerTitle: true,
+        actions:
+            widget.bbs.user_id == GlobalModel.user?.user_id ? [IconButton(onPressed: _showPostEdit, icon: Icon(Icons.more_horiz))] : [],
       ),
       body: SafeArea(
           child: Column(
@@ -190,48 +320,88 @@ class _BBSDetailState extends State<BBSDetail> {
             enablePullUp: true,
             child: ListView(
               children: [
-                SizedBox(
-                  height: widget.bbs.images.isEmpty ? 20 : 160,
-                  child: Swiper(
-                    itemCount: widget.bbs.images.length,
-                    itemBuilder: (context, index) {
-                      Image _image = Image.memory(widget.bbs.images[index]);
+                // SizedBox(
+                //   height: widget.bbs.images.isEmpty ? 20 : 160,
+                //   child: Swiper(
+                //     itemCount: widget.bbs.images.length,
+                //     itemBuilder: (context, index) {
+                //       Image _image = Image.memory(widget.bbs.images[index]);
 
-                      return Hero(
-                          tag: _image.hashCode,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ImagePreview(image: _image, tag: _image.hashCode),
-                                  ));
-                            },
-                            child: _image,
-                          ));
-                    },
+                //       return Hero(
+                //           tag: _image.hashCode,
+                //           child: GestureDetector(
+                //             onTap: () {
+                //               Navigator.push(
+                //                   context,
+                //                   MaterialPageRoute(
+                //                     builder: (context) => ImagePreview(image: _image, tag: _image.hashCode),
+                //                   ));
+                //             },
+                //             child: _image,
+                //           ));
+                //     },
+                //   ),
+                // ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Hero(
+                        tag: widget.bbs.id,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ...isLoad ? [_load] : [_userSheet],
+                            Text(_bbs?.title ?? "--", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text(_bbs?.content ?? "--"),
+                          ],
+                        ),
+                      ),
+                      ...widget.bbs.images.isNotEmpty
+                          ? [
+                              SizedBox(
+                                height: _gridHeight,
+                                width: double.infinity,
+                                child: GridView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: column,
+                                    // crossAxisCount: (widget.bbs.images.length > 3 ? 3 : widget.bbs.images.length),
+                                  ),
+                                  itemCount: widget.bbs.images.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    Image _image = Image.memory(widget.bbs.images[index], fit: BoxFit.cover, width: _imageWidth);
+                                    return Hero(
+                                        tag: _image.hashCode,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => ImagePreview(image: widget.bbs.images[index], tag: _image.hashCode),
+                                                ));
+                                          },
+                                          child: _image,
+                                        ));
+                                  },
+                                ),
+                              )
+                            ]
+                          : [],
+                      Divider(),
+                    ],
                   ),
                 ),
-                Hero(
-                    tag: widget.bbs.id,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...isLoad ? [_load] : [_userSheet],
-                          Text(_bbs?.title ?? "--", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text(_bbs?.content ?? "--"),
-                          Divider(),
-                        ],
-                      ),
-                    )),
+
                 ...List.generate(
                     _commentList.length,
                     (index) => CommentItem(
                           commnet: _commentList[index]['comment'],
                           subComment: _commentList[index]['subComments'],
+                          bbsUserId: widget.bbs.user_id,
                         )),
               ],
             ),

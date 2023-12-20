@@ -51,6 +51,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         body: SafeArea(
             child: IndexedStack(
           index: _pageIndex,

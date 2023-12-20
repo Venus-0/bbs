@@ -29,22 +29,28 @@ class _BBSPageState extends State<BBSPage> with SingleTickerProviderStateMixin {
       child: TabBar(
         controller: _tabController,
         tabs: [
+          Tab(text: "精华区"),
           Tab(text: "论坛"),
           Tab(text: "Wiki"),
           Tab(text: "问答区"),
-          Tab(text: "精华区"),
         ],
         onTap: (value) {},
       ),
     );
 
     Widget tabBarView = TabBarView(controller: _tabController, children: [
-      BBS(bbsModel: BBSModel.TYPE_POST,),
-      BBS(bbsModel: BBSModel.TYPE_WIKI,),
-      BBS(bbsModel: BBSModel.TYPE_QUESTION,),
+      DigestPage(),
+      BBS(
+        bbsModel: BBSModel.TYPE_POST,
+      ),
+      BBS(
+        bbsModel: BBSModel.TYPE_WIKI,
+      ),
+      BBS(
+        bbsModel: BBSModel.TYPE_QUESTION,
+      ),
       // WikiPage(),
       // QuestionPage(),
-      DigestPage(),
     ]);
     return Container(
       child: Column(

@@ -33,6 +33,10 @@ class _UserEditPasswordState extends State<UserEditPassword> {
       if (_new != _newA) {
         Toast.showToast("两次新密码不一致");
       }
+      if (_new.length <= 4) {
+        Toast.showToast("请输入一个长度大于4位的密码");
+        return;
+      }
       EasyLoading.show();
       bool _isEdit = await Api.editPassword(_old, _new, _newA);
       EasyLoading.dismiss();

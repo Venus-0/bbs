@@ -7,6 +7,7 @@ class UserModel {
   String email = ""; //用户邮箱
   String username; //用户名
   String? avatar; //用户头像
+  int rank; //用户权限
   DateTime? disable_time; //用户禁用时间
   DateTime? update_time; //用户更新时间
   DateTime? create_time; //用户创建时间
@@ -16,6 +17,7 @@ class UserModel {
     this.password = "",
     this.email = "",
     this.avatar = "",
+    this.rank = 0,
     this.username = "",
     this.create_time,
     this.disable_time,
@@ -32,6 +34,7 @@ class UserModel {
         email: jsonRes['email'] ?? "",
         username: jsonRes['username'] ?? "",
         avatar: jsonRes['avatar'] ?? "",
+        rank: jsonRes['rank'] ?? 0,
         create_time: jsonRes['create_time'] == null ? null : DateFormat("yyyy-MM-dd HH:mm:ss").parse(jsonRes['create_time']),
         disable_time: jsonRes['disable_time'] == null ? null : DateFormat("yyyy-MM-dd HH:mm:ss").parse(jsonRes['disable_time']),
         update_time: jsonRes['update_time'] == null ? null : DateFormat("yyyy-MM-dd HH:mm:ss").parse(jsonRes['update_time']),
@@ -45,8 +48,11 @@ class UserModel {
         "username": username,
         "email": email,
         "avatar": avatar,
+        'rank': rank,
         'create_time': create_time == null ? null : DateFormat("yyyy-MM-dd HH:mm:ss").format(create_time!),
         'disable_time': disable_time == null ? null : DateFormat("yyyy-MM-dd HH:mm:ss").format(disable_time!),
         'update_time': update_time == null ? null : DateFormat("yyyy-MM-dd HH:mm:ss").format(update_time!),
       };
+
+  bool get isSupport => rank == 1; //是否为技术支持人员
 }

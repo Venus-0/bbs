@@ -6,6 +6,7 @@ import 'package:bbs/views/bbs/bbs_detail.dart';
 import 'package:bbs/views/widgets/image_preview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class BBSItem extends StatefulWidget {
   const BBSItem({super.key, required this.bbs, this.enableLike = true});
@@ -25,6 +26,7 @@ class _BBSItemState extends State<BBSItem> {
     // TODO: implement initState
     super.initState();
     getLike();
+    widget.bbs.loadImage();
   }
 
   void getLike() async {
@@ -41,6 +43,25 @@ class _BBSItemState extends State<BBSItem> {
       } else {
         return Image.memory(base64Decode(widget.bbs.avatar!.split(",").last));
       }
+    }
+
+    Widget getImage() {
+      if (widget.bbs.images.isNotEmpty) return Image.memory(widget.bbs.images[0]);
+      if (widget.bbs.imageIds.isNotEmpty)
+        return FutureBuilder(
+          future: Api.getImage(widget.bbs.imageIds[0]),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              Uint8List? data = snapshot.data;
+              if (data == null) return Container(color: Colors.grey);
+              // widget.bbs.images.add(data);
+              return Image.memory(data);
+            } else {
+              return Container(color: Colors.grey);
+            }
+          },
+        );
+      return Container(color: Colors.grey);
     }
 
     return GestureDetector(
@@ -78,24 +99,25 @@ class _BBSItemState extends State<BBSItem> {
               ],
             ),
             Text(widget.bbs.content),
-            ...widget.bbs.images.isEmpty
+            ...widget.bbs.images.isEmpty && widget.bbs.imageIds.isEmpty
                 ? []
                 : [
                     Hero(
                         tag: "${widget.bbs.id}_image",
                         child: GestureDetector(
                           onTap: () {
+                            if (widget.bbs.images.isEmpty) return;
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      ImagePreview(image: Image.memory(widget.bbs.images[0]), tag: "${widget.bbs.id}_image"),
+                                  builder: (context) => ImagePreview(image: widget.bbs.images[0], tag: "${widget.bbs.id}_image"),
                                 ));
                           },
                           child: SizedBox(
                             height: 100,
                             width: 100,
-                            child: Image.memory(widget.bbs.images[0]),
+                            // child: Image.memory(widget.bbs.images[0]),
+                            child: getImage(),
                           ),
                         ))
                   ],

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:bbs/http/api.dart';
 import 'package:bbs/model/bbs_model.dart';
@@ -5,6 +6,7 @@ import 'package:bbs/model/global_model.dart';
 import 'package:bbs/utils/event_bus.dart';
 import 'package:bbs/views/user/my_post.dart';
 import 'package:bbs/views/user/user_detail.dart';
+import 'package:bbs/views/user/user_subscription_page.dart';
 
 import 'package:flutter/material.dart';
 
@@ -19,14 +21,19 @@ class _UserPageState extends State<UserPage> {
   int? _subscribe;
   int? _fans;
   List<BBSModel> _bbsList = [];
+  late StreamSubscription<User> _userSubscription;
+  late StreamSubscription<SubscribeChange> _subSubscription;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getDetail();
-    eventBus.on<User>().listen((event) {
+    _userSubscription = eventBus.on<User>().listen((event) {
       if (mounted) setState(() {});
+    });
+    _subSubscription = eventBus.on<SubscribeChange>().listen((event) {
+      getDetail();
     });
   }
 
@@ -92,22 +99,48 @@ class _UserPageState extends State<UserPage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                "${_fans ?? '--'}",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "粉丝",
-                style: TextStyle(fontSize: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserSubScriptionPage(user_id: GlobalModel.user!.user_id, showType: 2),
+                      ));
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      "${_fans ?? '--'}",
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "粉丝",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(width: 30),
-              Text(
-                "${_subscribe ?? '--'}",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "关注",
-                style: TextStyle(fontSize: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserSubScriptionPage(user_id: GlobalModel.user!.user_id, showType: 1),
+                      ));
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      "${_subscribe ?? '--'}",
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "关注",
+                      style: TextStyle(fontSize: 16),
+                    )
+                  ],
+                ),
               )
             ],
           ),
@@ -126,10 +159,10 @@ class _UserPageState extends State<UserPage> {
               onPressed: () {},
               icon: Icon(Icons.thumb_up, color: Colors.grey[400]),
               label: Text("我赞过的内容", style: TextStyle(color: Colors.grey[400]))),
-          TextButton.icon(
-              onPressed: () {},
-              icon: Icon(Icons.favorite, color: Colors.grey[400]),
-              label: Text("我的收藏", style: TextStyle(color: Colors.grey[400]))),
+          // TextButton.icon(
+          //     onPressed: () {},
+          //     icon: Icon(Icons.favorite, color: Colors.grey[400]),
+          //     label: Text("我的收藏", style: TextStyle(color: Colors.grey[400]))),
         ],
       ),
     );

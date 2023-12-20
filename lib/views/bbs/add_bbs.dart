@@ -3,12 +3,14 @@ import 'dart:typed_data';
 
 import 'package:bbs/http/api.dart';
 import 'package:bbs/model/bbs_model.dart';
+import 'package:bbs/model/global_model.dart';
 import 'package:bbs/utils/event_bus.dart';
 import 'package:bbs/utils/toast.dart';
 import 'package:bbs/views/widgets/image_preview.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class AddBBSPage extends StatefulWidget {
   const AddBBSPage({super.key});
@@ -30,6 +32,7 @@ class _AddBBSPageState extends State<AddBBSPage> {
 
   void onAdd() async {
     if (_onBusy) return;
+    EasyLoading.show();
     String _title = _titleController.text;
     String _content = _contentController.text;
 
@@ -48,6 +51,7 @@ class _AddBBSPageState extends State<AddBBSPage> {
     }
 
     Map _res = await Api.addBBS(_title, _content, _type, jsonEncode(_base64Images));
+    EasyLoading.dismiss();
     if (_res['code'] == 200) {
       Toast.showToast("新内容已发布!");
       eventBus.fire(BBSBus());
@@ -75,7 +79,7 @@ class _AddBBSPageState extends State<AddBBSPage> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ImagePreview(image: _image, tag: _image.hashCode),
+                      builder: (context) => ImagePreview(image: _imageList[i], tag: _image.hashCode),
                     ));
               },
               child: _image,
@@ -93,7 +97,13 @@ class _AddBBSPageState extends State<AddBBSPage> {
             }
             for (int i = 0; i < 9 - _imageList.length; i++) {
               if (i >= (_result?.files.length ?? 0)) break;
-              Uint8List? _imageBytes = _result?.files[i].bytes;
+              double fileSize = _result!.files[i].size / 1024 / 1024;
+              print("文件大小$fileSize");
+              if (fileSize > 10) {
+                Toast.showToast("最大支持上传单张大小10M的图片");
+                continue;
+              }
+              Uint8List? _imageBytes = _result.files[i].bytes;
               print(_imageBytes?.length);
               if (_imageBytes != null) {
                 _imageList.add(_imageBytes);
@@ -164,19 +174,23 @@ class _AddBBSPageState extends State<AddBBSPage> {
                   fillColor: _type == BBSModel.TYPE_POST ? Color(0xfff39c12) : null,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                RawMaterialButton(
-                  onPressed: () {
-                    setState(() {
-                      _type = BBSModel.TYPE_WIKI;
-                    });
-                  },
-                  child: Text(
-                    "WIKI",
-                    style: TextStyle(color: _type == BBSModel.TYPE_WIKI ? Colors.white : Color(0xfff39c12)),
-                  ),
-                  fillColor: _type == BBSModel.TYPE_WIKI ? Color(0xfff39c12) : null,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+                ...GlobalModel.user?.isSupport ?? false
+                    ? [
+                        RawMaterialButton(
+                          onPressed: () {
+                            setState(() {
+                              _type = BBSModel.TYPE_WIKI;
+                            });
+                          },
+                          child: Text(
+                            "WIKI",
+                            style: TextStyle(color: _type == BBSModel.TYPE_WIKI ? Colors.white : Color(0xfff39c12)),
+                          ),
+                          fillColor: _type == BBSModel.TYPE_WIKI ? Color(0xfff39c12) : null,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ) 
+                      ]
+                    : [],
                 RawMaterialButton(
                   onPressed: () {
                     setState(() {

@@ -1,6 +1,7 @@
 import 'package:bbs/views/first/popular.dart';
 import 'package:bbs/views/first/recent.dart';
 import 'package:bbs/views/first/recommand.dart';
+import 'package:bbs/views/first/search_page.dart';
 import 'package:bbs/views/first/subscribe.dart';
 import 'package:flutter/material.dart';
 
@@ -22,6 +23,17 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
     _tabController = TabController(length: 4, vsync: this);
   }
 
+  void onSearch() {
+    if (_searchController.text.isEmpty) return;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SearchPage(
+            search: _searchController.text,
+          ),
+        ));
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget search = Container(
@@ -39,6 +51,9 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
             hintText: "请输入搜索内容",
             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
             contentPadding: EdgeInsets.only(left: 12)),
+        onSubmitted: (value) {
+          onSearch();
+        },
       ),
     );
 
@@ -69,7 +84,7 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
         FocusScope.of(context).unfocus();
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: 10),
         child: Column(
           children: [
             SizedBox(height: 20),

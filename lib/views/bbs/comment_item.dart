@@ -4,13 +4,15 @@ import 'package:bbs/http/api.dart';
 import 'package:bbs/model/comment_model.dart';
 import 'package:bbs/model/global_model.dart';
 import 'package:bbs/utils/toast.dart';
+import 'package:bbs/views/user/user_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class CommentItem extends StatefulWidget {
-  const CommentItem({super.key, required this.commnet, this.subComment = const []});
+  const CommentItem({super.key, required this.commnet, this.subComment = const [], required this.bbsUserId});
   final CommentModel commnet;
   final List<CommentModel> subComment;
+  final int bbsUserId;
   @override
   State<CommentItem> createState() => _CommentItemState();
 }
@@ -115,6 +117,39 @@ class _CommentItemState extends State<CommentItem> {
     _replyNode.requestFocus();
   }
 
+  ///检查是否可以删除评论
+  ///帖子所有者可以删除所有评论
+  ///评论拥有者可以删除自己的评论
+  bool canDelete(int commentUserId) {
+    if (widget.bbsUserId == GlobalModel.user?.user_id) return true;
+    if (commentUserId == GlobalModel.user?.user_id) return true;
+    return false;
+  }
+
+  void onDeleteComment() async {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text("提示"),
+              content: Text("是否删除该条评论?"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      "是",
+                      style: TextStyle(color: Colors.red),
+                    )),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("否")),
+              ],
+            ));
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget _getAvatar() {
@@ -133,9 +168,24 @@ class _CommentItemState extends State<CommentItem> {
         children: [
           Row(
             children: [
-              SizedBox(height: 44, width: 44, child: _getAvatar()),
-              SizedBox(width: 10),
-              Text(widget.commnet.user?.username ?? "未知用户"),
+              GestureDetector(
+                onTap: () {
+                  if (widget.commnet.user == null) return;
+                  if (widget.commnet.user!.user_id == GlobalModel.user?.user_id) return;
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserInfo(user: widget.commnet.user!),
+                      ));
+                },
+                child: Row(
+                  children: [
+                    SizedBox(height: 44, width: 44, child: _getAvatar()),
+                    SizedBox(width: 10),
+                    Text(widget.commnet.user?.username ?? "未知用户"),
+                  ],
+                ),
+              ),
               Spacer(),
               FutureBuilder(
                 future: Api.checkLike(4, widget.commnet.id),
@@ -198,7 +248,23 @@ class _CommentItemState extends State<CommentItem> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: 5),
-                Text(widget.commnet.comment),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(widget.commnet.comment),
+                    ),
+                    ...canDelete(widget.commnet.user_id)
+                        ? [
+                            GestureDetector(
+                                onTap: onDeleteComment,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("删除", style: TextStyle(color: Colors.red)),
+                                ))
+                          ]
+                        : []
+                  ],
+                ),
                 SizedBox(height: 5),
               ],
             ),
@@ -227,18 +293,33 @@ class _CommentItemState extends State<CommentItem> {
                                 },
                                 child: Container(
                                   padding: EdgeInsets.symmetric(vertical: 3),
-                                  child: RichText(
-                                      text: TextSpan(children: [
-                                    TextSpan(text: widget.subComment[index].user?.username ?? "--", style: _replyerStyle),
-                                    ..._replyName != null
-                                        ? [
-                                            TextSpan(text: " 回复 ", style: _replyUserStyle),
-                                            TextSpan(text: "$_replyName ", style: _replyUserStyle),
-                                          ]
-                                        : [],
-                                    TextSpan(text: " : ", style: _replyUserStyle),
-                                    TextSpan(text: widget.subComment[index].comment, style: _replyCommentStyle),
-                                  ])),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          child: RichText(
+                                              text: TextSpan(children: [
+                                        TextSpan(text: widget.subComment[index].user?.username ?? "--", style: _replyerStyle),
+                                        ..._replyName != null
+                                            ? [
+                                                TextSpan(text: " 回复 ", style: _replyUserStyle),
+                                                TextSpan(text: "$_replyName ", style: _replyUserStyle),
+                                              ]
+                                            : [],
+                                        TextSpan(text: " : ", style: _replyUserStyle),
+                                        TextSpan(text: widget.subComment[index].comment, style: _replyCommentStyle),
+                                      ]))),
+                                      ...canDelete(widget.subComment[index].user_id)
+                                          ? [
+                                              GestureDetector(
+                                                  onTap: onDeleteComment,
+                                                  child: Padding(
+                                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                                    child: Text("删除", style: TextStyle(color: Colors.red)),
+                                                  ))
+                                            ]
+                                          : []
+                                    ],
+                                  ),
                                 ),
                               );
                             }),

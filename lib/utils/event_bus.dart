@@ -13,3 +13,5 @@ class Message {
   final UserModel user;
   const Message(this.message, this.user);
 }
+
+class SubscribeChange {}

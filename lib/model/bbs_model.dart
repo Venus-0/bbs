@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:bbs/http/api.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
@@ -16,7 +18,8 @@ class BBSModel {
   int question_type; //类型 1问题 2文章帖子
   int reply_count; //回复数量
   int up_count; //点赞数量
-  List<Uint8List> images;
+  List<Uint8List> images = [];
+  List<int> imageIds = [];
   String? avatar; //用户头像
   DateTime? last_reply_time; //最后回复时间
   DateTime? create_time; //创建时间
@@ -35,18 +38,18 @@ class BBSModel {
     this.create_time,
     this.delete_time,
     this.update_time,
-    this.images = const [],
+    // this.images = const [],
+    // this.imageIds = const [],
     this.avatar,
   });
 
   factory BBSModel.fromJson(Map<String, dynamic> json) {
-    List<Uint8List> _images = [];
-    List<String> _base64Images = List<String>.from(json['images'] ?? []);
-    for (String _base64Image in _base64Images) {
-      _images.add(base64Decode(_base64Image.split(",").last));
-    }
-
-    return BBSModel(
+    // List<Uint8List> _images = [];
+    // List<String> _base64Images = List<String>.from(json['images'] ?? []);
+    // for (String _base64Image in _base64Images) {
+    //   _images.add(base64Decode(_base64Image.split(",").last));
+    // }
+    final model = BBSModel(
       id: json['id'],
       user_id: json['user_id'],
       title: json['title'],
@@ -58,9 +61,19 @@ class BBSModel {
       create_time: DateTime.tryParse(json['create_time'] ?? ""),
       delete_time: DateTime.tryParse(json['delete_time'] ?? ""),
       update_time: DateTime.tryParse(json['update_time'] ?? ""),
-      images: _images,
       avatar: json['avatar'] ?? "",
     );
+    model.imageIds = List<int>.from(json['images'] ?? []);
+    return model;
+  }
+
+  Future<void> loadImage() async {
+    if (images.isNotEmpty) return;
+    print("加载图片中...");
+    for (int i in imageIds) {
+      Uint8List? data = await Api.getImage(i);
+      if (data != null) images.add(data);
+    }
   }
 
   Map<String, dynamic> toJson() => {
